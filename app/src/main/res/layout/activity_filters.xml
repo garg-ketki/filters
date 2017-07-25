@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/ll_footer"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.3" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#000000" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_variations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.7" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_footer"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.17"
+            android:text="CLEAR" />
+
+        <Button
+            android:id="@+id/btn_apply"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0.83"
+            android:text="APPLY" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </LinearLayout>
+</RelativeLayout>
