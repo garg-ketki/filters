@@ -1,6 +1,7 @@
 package filterexample.android.com.filtersexample.util;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;

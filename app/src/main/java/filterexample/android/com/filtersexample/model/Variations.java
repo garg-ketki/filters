@@ -16,4 +16,5 @@ public class Variations {
     public Integer isVeg;
     public boolean isSelected; //local_var
     public boolean isExcluded; //local_var
+    public String excludedReason;//local_var
 }

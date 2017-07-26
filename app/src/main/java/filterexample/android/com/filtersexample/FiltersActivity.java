@@ -3,6 +3,7 @@ package filterexample.android.com.filtersexample;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import filterexample.android.com.filtersexample.adapter.FilterGroupAdapter;
@@ -21,14 +23,11 @@ import filterexample.android.com.filtersexample.model.Variations;
 import filterexample.android.com.filtersexample.util.FiltersDataInitializer;
 
 public class FiltersActivity extends AppCompatActivity {
-    private static final String TAG = FiltersActivity.class.getSimpleName();
-
-    private RecyclerView groupRV, variationRV;
     private FilterGroupAdapter filterGroupAdapter;
     private FilterVariationAdapter filterVariationAdapter;
     private FiltersModel filtersModel;
     private HashMap<String, String> storedFiltersValue; //to change functionality to multiple selection, change values to list
-    private int selectedGroupId;
+    private int selectedGroupId = 0;
     private Button applyBtn, clearBtn;
     private LinearLayout progressLL;
 
@@ -49,25 +48,30 @@ public class FiltersActivity extends AppCompatActivity {
      * Method aims at downloading the filter data in background and removing progress-bar once data is fetched
      */
     private void startAsyncTaskToLoadData() {
-        new AsyncTask() {
+        AsyncTask<Object, Void, FiltersModel> asyncTask = new AsyncTask<Object, Void, FiltersModel>() {
             @Override
-            protected Object doInBackground(Object[] params) {
+            protected FiltersModel doInBackground(Object... params) {
                 return FiltersDataInitializer.getFilterData();
             }
 
             @Override
-            protected void onPostExecute(Object o) {
-                super.onPostExecute(o);
-                filtersModel = (FiltersModel) o;
+            protected void onPostExecute(FiltersModel filtersModel) {
+                super.onPostExecute(filtersModel);
+                FiltersActivity.this.filtersModel = filtersModel;
+                if (filtersModel == null) {
+                    Toast.makeText(FiltersActivity.this, "Could not load data", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 setStoredHashMap();
                 initUI();
                 initListeners();
             }
-        }.execute();
+        };
+        asyncTask.execute();
     }
 
     /**
-     * Initialize the hashMap to set default values for a given group and re-constructs itself on clear all filters
+     * Initialize the hashMap to set default values for a given group and re-constructs itself on clearing all filters
      */
     private void setStoredHashMap() {
         if (storedFiltersValue == null)
@@ -79,65 +83,120 @@ public class FiltersActivity extends AppCompatActivity {
             group.isChoosen = false;
             for (Variations variation : group.variations) {
                 group.id = i;
-                variation.isExcluded = isExcluded(group.group_id, variation.id);
-                if (variation.isExcluded) {
-                    variation.isSelected = false;
+                isExcluded(group.group_id, variation);
+                if (variation.isDefault == 1 && variation.inStock == 1 && !variation.isExcluded) {
+                    variation.isSelected = true;
+                    group.isChoosen = true;
+                    storedFiltersValue.put(group.group_id, variation.id);
                 } else {
-                    if (variation.isDefault == 1 && variation.inStock == 1) {
-                        variation.isSelected = true;
-                        group.isChoosen = true;
-                        storedFiltersValue.put(group.group_id, variation.id);
-                    } else {
-                        variation.isSelected = false;
-                    }
+                    variation.isSelected = false;
                 }
             }
         }
     }
 
     /**
-     * method checks if a given group_id and variation_id are present in excluded list or not
+     * method checks if selected values are present in excluded list or not
+     * If present, checks whether the corresponding pair, belongs to present group item and variation id
      *
-     * @param group_id
-     * @param variation_id
-     * @return
+     * @param group_id:  group_id of current selected group
+     * @param variation: current variation
      */
-    private boolean isExcluded(String group_id, String variation_id) {
+    private void isExcluded(String group_id, Variations variation) {
         for (int row = 0; row < filtersModel.variants.exclude_list.length; row++) {
             ExcludeItem[] excludeItems = filtersModel.variants.exclude_list[row];
-            for (int col = 0; col < excludeItems.length; col++) {
-                ExcludeItem item = excludeItems[col];
-                if (item.group_id.equals(group_id) && item.variation_id.equals(variation_id)) {
-                    return true;
+            ExcludeItem item1 = excludeItems[0];
+            ExcludeItem item2 = excludeItems[1];
+            if (storedFiltersValue.containsKey(item1.group_id) && storedFiltersValue.get(item1.group_id).equals(item1.variation_id)) {
+                if (item2.group_id.equals(group_id) && item2.variation_id.equals(variation.id)) {
+                    variation.isExcluded = true;
+                    variation.excludedReason = getExcludedReason(item1.group_id, item1.variation_id);
+                    return;
+                }
+            } else if (storedFiltersValue.containsKey(item2.group_id) && storedFiltersValue.get(item2.group_id).equals(item2.variation_id)) {
+                if (item1.group_id.equals(group_id) && item1.variation_id.equals(variation.id)) {
+                    variation.isExcluded = true;
+                    variation.excludedReason = getExcludedReason(item2.group_id, item2.variation_id);
+                    return;
                 }
             }
         }
-        return false;
+        variation.isExcluded = false;
+    }
+
+    /**
+     * Method aims to find the exclusion reason
+     *
+     * @param group_id:     group id of the responsible group
+     * @param variation_id: group id of the responsible variation
+     * @return: Formatted String reason
+     */
+    private String getExcludedReason(String group_id, String variation_id) {
+        String groupName = null;
+        String variationName = null;
+        for (VariantGroups group : filtersModel.variants.variant_groups) {
+            if (group.group_id.equals(group_id)) {
+                groupName = group.name;
+                for (Variations variation : group.variations) {
+                    if (variation.id.equals(variation_id)) {
+                        variationName = variation.name;
+                        break;
+                    }
+                }
+            }
+        }
+        if (groupName != null && variationName != null) {
+            return "Not applicable with " + variationName + " " + groupName;
+        }
+        return null;
     }
 
     /**
      * initialize UI and assign memory to variables
      */
     private void initUI() {
-        VariantGroups group = filtersModel.variants.variant_groups.get(selectedGroupId);
-        selectedGroupId = 0;
-        group.isSelected = true;
-
         progressLL.setVisibility(View.GONE);
-        groupRV = (RecyclerView) findViewById(R.id.rv_group);
-        filterGroupAdapter = new FilterGroupAdapter(this, filtersModel.variants.variant_groups);
+        RecyclerView groupRV = (RecyclerView) findViewById(R.id.rv_group);
+        initFilterGroupAdapter(0);
+
         groupRV.setAdapter(filterGroupAdapter);
         groupRV.setLayoutManager(new LinearLayoutManager(this));
         groupRV.setHasFixedSize(true);
 
-        variationRV = (RecyclerView) findViewById(R.id.rv_variations);
-        filterVariationAdapter = new FilterVariationAdapter(this, group.variations);
+        RecyclerView variationRV = (RecyclerView) findViewById(R.id.rv_variations);
+        filterVariationAdapter = new FilterVariationAdapter(this, filtersModel.variants.variant_groups.get(selectedGroupId).variations);
         variationRV.setAdapter(filterVariationAdapter);
         variationRV.setLayoutManager(new LinearLayoutManager(this));
         variationRV.setHasFixedSize(true);
+        variationRV.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
 
         applyBtn = (Button) findViewById(R.id.btn_apply);
         clearBtn = (Button) findViewById(R.id.btn_clear);
+    }
+
+    /**
+     * Initialize and validate group adapter based on its position
+     *
+     * @param position: position of current selected item
+     */
+    private void initFilterGroupAdapter(int position) {
+        ArrayList<VariantGroups> variantGroups = filtersModel.variants.variant_groups;
+        for (VariantGroups groups : variantGroups) {
+            groups.isSelected = false;
+        }
+        VariantGroups group = variantGroups.get(position);
+        selectedGroupId = group.id;
+        group.isSelected = true;
+
+        for (Variations variation : group.variations) {
+            isExcluded(group.group_id, variation);
+        }
+
+        if (filterGroupAdapter == null) {
+            filterGroupAdapter = new FilterGroupAdapter(this, variantGroups);
+        } else {
+            filterGroupAdapter.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -147,16 +206,8 @@ public class FiltersActivity extends AppCompatActivity {
         filterGroupAdapter.setOnItemClickListener(new FilterGroupAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                for (VariantGroups groups : filtersModel.variants.variant_groups) {
-                    groups.isSelected = false;
-                }
-
-                VariantGroups group = filtersModel.variants.variant_groups.get(position);
-                selectedGroupId = group.id;
-                group.isSelected = true;
-
-                filterGroupAdapter.notifyDataSetChanged();
-                filterVariationAdapter.setVariationList(group.variations);
+                initFilterGroupAdapter(position);
+                filterVariationAdapter.setVariationList(filtersModel.variants.variant_groups.get(selectedGroupId).variations);
             }
         });
 
@@ -169,8 +220,8 @@ public class FiltersActivity extends AppCompatActivity {
                 }
                 Variations variation = group.variations.get(position);
                 variation.isSelected = true;
-
                 storedFiltersValue.put(group.group_id, variation.id);
+
                 group.isChoosen = true;
 
                 filterVariationAdapter.notifyDataSetChanged();

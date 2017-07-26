@@ -1,11 +1,13 @@
 package filterexample.android.com.filtersexample.adapter;
 
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ public class FilterVariationAdapter extends RecyclerView.Adapter<FilterVariation
     private ArrayList<Variations> variations;
     private Activity activity;
     private final int resource;
-    private FilterVariationAdapter.OnItemClickListener mItemClickListener;
+    private OnItemClickListener mItemClickListener;
 
     public FilterVariationAdapter(Activity activity, ArrayList<Variations> variations) {
         this.variations = variations;
@@ -40,17 +42,37 @@ public class FilterVariationAdapter extends RecyclerView.Adapter<FilterVariation
     public void onBindViewHolder(FilterVariationAdapter.VariationViewHolder holder, int position) {
         Variations variation = variations.get(position);
         holder.titleTV.setText(variation.name);
+        holder.parentView.setEnabled(true);
         holder.titleTV.setTextColor(ContextCompat.getColor(activity, R.color.black));
+        holder.priceTV.setTextColor(ContextCompat.getColor(activity, R.color.black));
+        holder.naTV.setVisibility(View.GONE);
         if (variation.isSelected) {
-            holder.titleTV.setBackgroundColor(ContextCompat.getColor(activity, R.color.colorAccent));
+            holder.titleTV.setTypeface(null, Typeface.BOLD);
+            holder.selectedIV.setVisibility(View.VISIBLE);
         } else {
-            holder.titleTV.setBackgroundColor(ContextCompat.getColor(activity, R.color.white));
+            holder.selectedIV.setVisibility(View.GONE);
+            holder.titleTV.setTypeface(null, Typeface.NORMAL);
             if (variation.inStock == 1 && !variation.isExcluded) {
-                holder.parentView.setClickable(true);
+
             } else {
-                holder.parentView.setClickable(false);
-                holder.titleTV.setTextColor(ContextCompat.getColor(activity, R.color.grey));
+                holder.parentView.setEnabled(false);
+                if (variation.excludedReason != null) {
+                    holder.naTV.setVisibility(View.VISIBLE);
+                    holder.naTV.setText(variation.excludedReason);
+                }
+                holder.priceTV.setTextColor(ContextCompat.getColor(activity, R.color.disabled_grey));
+                holder.titleTV.setTextColor(ContextCompat.getColor(activity, R.color.disabled_grey));
             }
+        }
+        if (variation.price > 0) {
+            holder.priceTV.setText("Price: " + activity.getString(R.string.rs) + " " + variation.price);
+        } else {
+            holder.priceTV.setText("Free");
+        }
+        if (variation.inStock == 1) {
+            holder.availableTV.setVisibility(View.VISIBLE);
+        } else {
+            holder.availableTV.setVisibility(View.GONE);
         }
     }
 
@@ -68,7 +90,7 @@ public class FilterVariationAdapter extends RecyclerView.Adapter<FilterVariation
     /**
      * Modify variation list on changing related groups
      *
-     * @param variations
+     * @param variations: modified arrayList
      */
     public void setVariationList(ArrayList<Variations> variations) {
         this.variations = variations;
@@ -79,18 +101,22 @@ public class FilterVariationAdapter extends RecyclerView.Adapter<FilterVariation
         this.mItemClickListener = mItemClickListener;
     }
 
-    public class VariationViewHolder extends RecyclerView.ViewHolder implements
+    class VariationViewHolder extends RecyclerView.ViewHolder implements
             View.OnClickListener {
 
-        public View parentView;
-        public TextView titleTV;
+        View parentView;
+        TextView titleTV, priceTV, availableTV, naTV;
+        ImageView selectedIV;
 
-        public VariationViewHolder(View itemView) {
+        VariationViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             titleTV = (TextView) itemView.findViewById(R.id.tv_title);
+            priceTV = (TextView) itemView.findViewById(R.id.tv_price);
+            availableTV = (TextView) itemView.findViewById(R.id.tv_available);
+            selectedIV = (ImageView) itemView.findViewById(R.id.iv_selected);
+            naTV = (TextView) itemView.findViewById(R.id.tv_na);
             parentView = itemView;
-
         }
 
         @Override

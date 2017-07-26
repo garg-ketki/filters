@@ -42,8 +42,10 @@ public class FilterGroupAdapter extends RecyclerView.Adapter<FilterGroupAdapter.
         holder.titleTV.setText(group.name);
         if (group.isSelected) {
             holder.titleTV.setTextColor(ContextCompat.getColor(activity, R.color.colorPrimaryDark));
+            holder.parentView.setBackgroundColor(ContextCompat.getColor(activity, R.color.white));
         } else {
             holder.titleTV.setTextColor(ContextCompat.getColor(activity, R.color.black));
+            holder.parentView.setBackgroundColor(ContextCompat.getColor(activity, R.color.grey));
         }
         if (group.isChoosen) {
             holder.titleTV.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.circle, 0);
@@ -68,12 +70,12 @@ public class FilterGroupAdapter extends RecyclerView.Adapter<FilterGroupAdapter.
         this.mItemClickListener = mItemClickListener;
     }
 
-    public class GroupViewHolder extends RecyclerView.ViewHolder implements
+    class GroupViewHolder extends RecyclerView.ViewHolder implements
             View.OnClickListener {
-        public View parentView;
-        public TextView titleTV;
+        View parentView;
+        TextView titleTV;
 
-        public GroupViewHolder(View itemView) {
+        GroupViewHolder(View itemView) {
             super(itemView);
             itemView.setOnClickListener(this);
             titleTV = (TextView) itemView.findViewById(R.id.tv_title);

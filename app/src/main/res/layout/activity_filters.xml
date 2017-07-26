@@ -9,53 +9,75 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ll_footer"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:orientation="horizontal">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv_group"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.3" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:background="@color/grey"
+            android:scrollbars="vertical" />
 
         <View
             android:layout_width="1dp"
             android:layout_height="match_parent"
-            android:background="#000000" />
+            android:background="@color/stroke" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv_variations"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.7" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.7"
+            android:scrollbars="vertical" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/ll_footer"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="56dp"
         android:layout_alignParentBottom="true"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_clear"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.17"
-            android:text="CLEAR" />
+            android:layout_weight="0.3"
+            android:background="@drawable/selector_cancel_btn"
+            android:gravity="center"
+            android:text="CLEAR"
+            android:textColor="@color/colorPrimaryDark" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/stroke" />
 
         <Button
             android:id="@+id/btn_apply"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.83"
-            android:text="APPLY" />
+            android:layout_weight="0.7"
+            android:background="@drawable/selector_apply_btn"
+            android:gravity="center"
+            android:text="APPLY"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            android:textStyle="bold" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/ll_progress"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white">
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:background="@color/white"
+        android:visibility="gone">
 
         <ProgressBar
             style="@style/Widget.AppCompat.ProgressBar"
